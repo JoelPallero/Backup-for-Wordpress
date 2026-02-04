@@ -476,8 +476,6 @@ class DN325_Backup_Ajax {
             wp_send_json_error(['message' => __('No tienes permisos para realizar esta acción', 'dn325-backup')]);
         }
 
-        require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-settings.php';
-        
         $settings = [
             'include_media' => isset($_POST['include_media']),
             'include_uploads' => isset($_POST['include_uploads']),

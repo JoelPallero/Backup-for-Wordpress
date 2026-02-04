@@ -78,21 +78,20 @@ class DN325_Backup_Export {
             }
 
             // Exportar base de datos (si está habilitado)
-            require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-settings.php';
-            
             if (DN325_Backup_Settings::should_include('include_database')) {
                 DN325_Backup_Logger::info('Exportando base de datos');
                 try {
                     $this->export_database();
                     DN325_Backup_Logger::info('Base de datos exportada exitosamente');
                 } catch (Exception $e) {
-                $error = 'Error al exportar base de datos: ' . $e->getMessage() . ' (Archivo: ' . $e->getFile() . ', Línea: ' . $e->getLine() . ')';
-                DN325_Backup_Logger::error($error);
-                throw new Exception($error);
-            } catch (Error $e) {
-                $error = 'Error fatal al exportar base de datos: ' . $e->getMessage() . ' (Archivo: ' . $e->getFile() . ', Línea: ' . $e->getLine() . ')';
-                DN325_Backup_Logger::error($error);
-                throw new Exception($error);
+                    $error = 'Error al exportar base de datos: ' . $e->getMessage() . ' (Archivo: ' . $e->getFile() . ', Línea: ' . $e->getLine() . ')';
+                    DN325_Backup_Logger::error($error);
+                    throw new Exception($error);
+                } catch (Error $e) {
+                    $error = 'Error fatal al exportar base de datos: ' . $e->getMessage() . ' (Archivo: ' . $e->getFile() . ', Línea: ' . $e->getLine() . ')';
+                    DN325_Backup_Logger::error($error);
+                    throw new Exception($error);
+                }
             }
 
             // Exportar wp-content (si está habilitado)

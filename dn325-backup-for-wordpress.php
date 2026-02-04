@@ -20,16 +20,31 @@ define('DN325_BACKUP_PATH', plugin_dir_path(__FILE__));
 define('DN325_BACKUP_URL', plugin_dir_url(__FILE__));
 define('DN325_BACKUP_SIGNATURE', 'DN325_BACKUP_V1.0.0'); // Firma para validar archivos
 
-// Autocarga de clases
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-menu.php';
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-logger.php';
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-license.php';
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-loader.php';
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-export.php';
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-import.php';
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-ajax.php';
-require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-scheduler.php';
-require_once DN325_BACKUP_PATH . 'admin/class-dn325-backup-admin.php';
+// Autocarga de clases con verificación de existencia
+$required_files = [
+    'includes/class-dn325-menu.php',
+    'includes/class-dn325-backup-logger.php',
+    'includes/class-dn325-backup-license.php',
+    'includes/class-dn325-backup-settings.php',
+    'includes/class-dn325-backup-loader.php',
+    'includes/class-dn325-backup-export.php',
+    'includes/class-dn325-backup-import.php',
+    'includes/class-dn325-backup-ajax.php',
+    'includes/class-dn325-backup-scheduler.php',
+    'admin/class-dn325-backup-admin.php'
+];
+
+foreach ($required_files as $file) {
+    $file_path = DN325_BACKUP_PATH . $file;
+    if (file_exists($file_path)) {
+        require_once $file_path;
+    } else {
+        // Si estamos en modo debug, mostrar error
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            wp_die(sprintf(__('Error: No se pudo cargar el archivo requerido: %s', 'dn325-backup'), $file));
+        }
+    }
+}
 
 // Hooks de inicialización
 add_action('plugins_loaded', function() {
@@ -51,6 +66,8 @@ add_action('plugins_loaded', function() {
 
 // Cargar textdomain
 add_action('plugins_loaded', 'dn325_backup_load_textdomain');
-function dn325_backup_load_textdomain() {
-    load_plugin_textdomain('dn325-backup', false, dirname(plugin_basename(__FILE__)) . '/languages');
+if (!function_exists('dn325_backup_load_textdomain')) {
+    function dn325_backup_load_textdomain() {
+        load_plugin_textdomain('dn325-backup', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    }
 }

@@ -16,7 +16,5 @@ class DN325_Backup_Loader {
         if (class_exists('DN325_Backup_Ajax')) {
             DN325_Backup_Ajax::init();
         }
-        // Cargar settings
-        require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-settings.php';
     }
 }

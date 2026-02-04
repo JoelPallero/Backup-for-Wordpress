@@ -4,7 +4,10 @@
 
 param(
     [Parameter(Mandatory=$true)]
-    [string]$Version
+    [string]$Version,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$Force
 )
 
 # Verificar que estamos en un repositorio git
@@ -49,10 +52,18 @@ Write-Host "Versión: $Version" -ForegroundColor Cyan
 Write-Host "Tag: $Tag" -ForegroundColor Cyan
 Write-Host ""
 
-# Confirmar
-$confirm = Read-Host "¿Continuar con el release? (y/N)"
-if ($confirm -ne 'y' -and $confirm -ne 'Y') {
-    exit 1
+# Confirmar (solo si no se usa -Force)
+if (-not $Force) {
+    try {
+        $confirm = Read-Host "¿Continuar con el release? (y/N)"
+        if ($confirm -ne 'y' -and $confirm -ne 'Y') {
+            Write-Host "Cancelado por el usuario" -ForegroundColor Yellow
+            exit 1
+        }
+    } catch {
+        # Si no se puede leer (modo no interactivo), continuar automáticamente
+        Write-Host "Modo no interactivo detectado, continuando automáticamente..." -ForegroundColor Yellow
+    }
 }
 
 # Crear tag
