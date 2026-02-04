@@ -1,0 +1,85 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          echo "Tag: v$VERSION"
+      
+      - name: Get plugin name
+        id: plugin
+        run: |
+          # Intentar obtener el nombre del plugin del archivo principal
+          MAIN_FILE=$(find . -maxdepth 1 -name "*.php" -type f | head -n 1)
+          if [ -f "$MAIN_FILE" ]; then
+            PLUGIN_NAME=$(grep -m 1 "Plugin Name:" "$MAIN_FILE" | sed 's/.*Plugin Name: *//' | sed 's/ *$//')
+            echo "plugin_name=$PLUGIN_NAME" >> $GITHUB_OUTPUT
+            echo "Plugin Name: $PLUGIN_NAME"
+          else
+            # Fallback: usar el nombre del repositorio
+            PLUGIN_NAME=${GITHUB_REPOSITORY#*/}
+            echo "plugin_name=$PLUGIN_NAME" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create ZIP
+        run: |
+          ZIP_NAME="${GITHUB_REPOSITORY#*/}-v${{ steps.version.outputs.version }}.zip"
+          echo "📦 Creando ZIP: $ZIP_NAME"
+          
+          # Crear ZIP excluyendo archivos innecesarios
+          # NOTA: Incluimos .md y .txt porque son parte de la documentación del plugin
+          zip -r "$ZIP_NAME" . \
+            -x "*.git*" \
+            -x "*.DS_Store" \
+            -x "*node_modules*" \
+            -x "*.zip" \
+            -x "*.log" \
+            -x ".vscode/*" \
+            -x ".idea/*" \
+            -x "*.swp" \
+            -x "*.swo" \
+            -x "*~" \
+            -x ".github/*" \
+            -x "scripts/*"
+          
+          ls -lh "$ZIP_NAME"
+          echo "✅ ZIP creado: $ZIP_NAME"
+          echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: ${{ steps.plugin.outputs.plugin_name }} v${{ steps.version.outputs.version }}
+          body: |
+            ## 🎉 Release v${{ steps.version.outputs.version }}
+            
+            ### 📥 Instalación
+            1. Descarga el archivo ZIP
+            2. Ve a WordPress → Plugins → Añadir nuevo → Subir plugin
+            3. Selecciona el ZIP y actívalo
+            
+            ### 📚 Documentación
+            Ver el README.md del plugin para más información.
+          files: ${{ env.zip_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
