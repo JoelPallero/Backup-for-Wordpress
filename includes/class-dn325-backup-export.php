@@ -80,6 +80,7 @@ class DN325_Backup_Export {
             // Exportar base de datos (si está habilitado)
             if (DN325_Backup_Settings::should_include('include_database')) {
                 DN325_Backup_Logger::info('Exportando base de datos');
+                DN325_Backup_Logger::info('Base de datos: 0%');
                 try {
                     $this->export_database();
                     DN325_Backup_Logger::info('Base de datos exportada exitosamente');
@@ -101,6 +102,7 @@ class DN325_Backup_Export {
             
             if ($include_content) {
                 DN325_Backup_Logger::info('Exportando wp-content');
+                DN325_Backup_Logger::info('Archivos: 0%');
                 $this->export_wp_content();
                 DN325_Backup_Logger::info('wp-content exportado exitosamente');
             }
@@ -169,10 +171,41 @@ class DN325_Backup_Export {
      * Escribe de forma segura en un archivo y verifica errores
      */
     private function safe_fwrite($handle, $string) {
+        // Verificar espacio en disco antes de escribir
+        $meta = stream_get_meta_data($handle);
+        if (isset($meta['uri'])) {
+            $file_path = $meta['uri'];
+            $dir = dirname($file_path);
+            $free_space = @disk_free_space($dir);
+            $string_size = strlen($string);
+            
+            if ($free_space !== false && $free_space < ($string_size * 2)) {
+                $free_space_mb = round($free_space / 1024 / 1024, 2);
+                $string_size_mb = round($string_size / 1024 / 1024, 2);
+                $error = sprintf(
+                    __('Espacio insuficiente en disco para escribir. Espacio disponible: %s MB, Tamaño a escribir: %s MB', 'dn325-backup'),
+                    $free_space_mb,
+                    $string_size_mb
+                );
+                DN325_Backup_Logger::error($error);
+                throw new Exception($error);
+            }
+        }
+        
         $result = @fwrite($handle, $string);
         if ($result === false) {
             $error = error_get_last();
             $error_msg = $error ? $error['message'] : __('Error desconocido al escribir en el archivo', 'dn325-backup');
+            
+            // Verificar si es error de espacio en disco
+            if (strpos(strtolower($error_msg), 'no space') !== false || 
+                strpos(strtolower($error_msg), 'disk full') !== false ||
+                strpos(strtolower($error_msg), 'espacio') !== false) {
+                if (isset($file_path)) {
+                    $this->log_disk_space_error($file_path, strlen($string));
+                }
+            }
+            
             DN325_Backup_Logger::error('Error al escribir en archivo: ' . $error_msg);
             throw new Exception(__('Error al escribir en el archivo SQL', 'dn325-backup') . ': ' . $error_msg);
         }
@@ -228,6 +261,15 @@ class DN325_Backup_Export {
             DN325_Backup_Logger::info("Tablas con prefijo '{$wpdb->prefix}': {$prefixed_count}");
         }
         
+        // Contar tablas con prefijo para calcular porcentaje
+        $prefixed_tables = [];
+        foreach ($tables as $table) {
+            if (strpos($table[0], $wpdb->prefix) === 0) {
+                $prefixed_tables[] = $table[0];
+            }
+        }
+        $total_prefixed_tables = count($prefixed_tables);
+        
         $table_count = 0;
         foreach ($tables as $table) {
             $table_name = $table[0];
@@ -238,7 +280,8 @@ class DN325_Backup_Export {
             }
 
             $table_count++;
-            DN325_Backup_Logger::info("Procesando tabla {$table_count}: {$table_name}");
+            $percentage = $total_prefixed_tables > 0 ? round(($table_count / $total_prefixed_tables) * 100) : 0;
+            DN325_Backup_Logger::info("Procesando tabla {$table_count}/{$total_prefixed_tables}: {$table_name} - Base de datos: {$percentage}%");
             
             // Registrar uso de memoria antes de procesar cada tabla
             $memory_usage = memory_get_usage(true);
@@ -362,6 +405,7 @@ class DN325_Backup_Export {
         }
         
         DN325_Backup_Logger::info("Exportación de base de datos completada. Total de tablas procesadas: {$table_count}");
+        DN325_Backup_Logger::info("Base de datos: 100%");
 
         if (!fclose($handle)) {
             $error = __('Error al cerrar el archivo SQL', 'dn325-backup');
@@ -393,20 +437,71 @@ class DN325_Backup_Export {
             throw new Exception($error);
         }
 
-        $this->copy_directory($wp_content_dir, $target_dir);
+        // Contar archivos totales para calcular porcentaje
+        DN325_Backup_Logger::info('Contando archivos en wp-content...');
+        $total_files = $this->count_files($wp_content_dir);
+        DN325_Backup_Logger::info("Total de archivos a copiar: {$total_files}");
+        
+        // Copiar con seguimiento de progreso
+        $copied_files = 0;
+        $this->copy_directory($wp_content_dir, $target_dir, $total_files, $copied_files);
         DN325_Backup_Logger::info('wp-content copiado exitosamente');
+        DN325_Backup_Logger::info("Archivos: 100%");
+    }
+    
+    /**
+     * Cuenta el total de archivos en un directorio recursivamente
+     */
+    private function count_files($dir) {
+        $count = 0;
+        if (!is_dir($dir)) {
+            return $count;
+        }
+        
+        // Omitir backups anteriores
+        if (strpos($dir, '/dn325bck') !== false) {
+            return $count;
+        }
+        
+        $files = scandir($dir);
+        foreach ($files as $file) {
+            if ($file == '.' || $file == '..') {
+                continue;
+            }
+            
+            $file_path = $dir . '/' . $file;
+            
+            // Omitir backups anteriores
+            if (strpos($file_path, '/dn325bck') !== false) {
+                continue;
+            }
+            
+            if (is_dir($file_path)) {
+                $count += $this->count_files($file_path);
+            } else {
+                $count++;
+            }
+        }
+        
+        return $count;
     }
 
     /**
-     * Copia un directorio recursivamente
+     * Copia un directorio recursivamente con seguimiento de progreso
      */
-    private function copy_directory($source, $destination) {
+    private function copy_directory($source, $destination, $total_files = null, &$copied_files = 0) {
         if (!is_dir($source)) {
             return false;
         }
 
         if (!is_dir($destination)) {
-            wp_mkdir_p($destination);
+            if (!wp_mkdir_p($destination)) {
+                $error = __('No se pudo crear el directorio', 'dn325-backup') . ': ' . $destination;
+                DN325_Backup_Logger::error($error);
+                // Verificar si es error de espacio en disco
+                $this->check_disk_space_error($destination);
+                throw new Exception($error);
+            }
         }
 
         $dir = opendir($source);
@@ -428,14 +523,95 @@ class DN325_Backup_Export {
             }
 
             if (is_dir($source_path)) {
-                $this->copy_directory($source_path, $dest_path);
+                $this->copy_directory($source_path, $dest_path, $total_files, $copied_files);
             } else {
-                copy($source_path, $dest_path);
+                // Verificar espacio en disco antes de copiar
+                $this->check_disk_space($dest_path, filesize($source_path));
+                
+                $result = @copy($source_path, $dest_path);
+                if (!$result) {
+                    $error = error_get_last();
+                    $error_msg = $error ? $error['message'] : __('Error desconocido al copiar archivo', 'dn325-backup');
+                    
+                    // Verificar si es error de espacio en disco
+                    if (strpos(strtolower($error_msg), 'no space') !== false || 
+                        strpos(strtolower($error_msg), 'disk full') !== false ||
+                        strpos(strtolower($error_msg), 'espacio') !== false) {
+                        $this->log_disk_space_error($dest_path, filesize($source_path));
+                    }
+                    
+                    DN325_Backup_Logger::error("Error al copiar archivo {$source_path} a {$dest_path}: {$error_msg}");
+                    throw new Exception(__('Error al copiar archivo', 'dn325-backup') . ": {$source_path} - {$error_msg}");
+                }
+                
+                $copied_files++;
+                
+                // Registrar progreso cada 100 archivos o al final
+                if ($total_files && ($copied_files % 100 == 0 || $copied_files == $total_files)) {
+                    $percentage = round(($copied_files / $total_files) * 100);
+                    DN325_Backup_Logger::info("Archivos: {$percentage}% ({$copied_files}/{$total_files})");
+                }
             }
         }
 
         closedir($dir);
         return true;
+    }
+    
+    /**
+     * Verifica si hay espacio suficiente en disco
+     */
+    private function check_disk_space($file_path, $file_size) {
+        $dir = dirname($file_path);
+        $free_space = @disk_free_space($dir);
+        
+        if ($free_space !== false && $free_space < ($file_size * 2)) {
+            // Espacio insuficiente (dejamos un margen de 2x el tamaño del archivo)
+            $free_space_mb = round($free_space / 1024 / 1024, 2);
+            $file_size_mb = round($file_size / 1024 / 1024, 2);
+            $error = sprintf(
+                __('Espacio insuficiente en disco. Espacio disponible: %s MB, Tamaño del archivo: %s MB', 'dn325-backup'),
+                $free_space_mb,
+                $file_size_mb
+            );
+            DN325_Backup_Logger::error($error);
+            throw new Exception($error);
+        }
+    }
+    
+    /**
+     * Verifica errores de espacio en disco al crear directorios
+     */
+    private function check_disk_space_error($path) {
+        $dir = dirname($path);
+        $free_space = @disk_free_space($dir);
+        
+        if ($free_space !== false && $free_space < 10485760) { // Menos de 10MB
+            $free_space_mb = round($free_space / 1024 / 1024, 2);
+            $error = sprintf(
+                __('Espacio insuficiente en disco para crear directorio. Espacio disponible: %s MB', 'dn325-backup'),
+                $free_space_mb
+            );
+            DN325_Backup_Logger::error($error);
+        }
+    }
+    
+    /**
+     * Registra error de espacio en disco en el log
+     */
+    private function log_disk_space_error($file_path, $file_size) {
+        $dir = dirname($file_path);
+        $free_space = @disk_free_space($dir);
+        $free_space_mb = $free_space !== false ? round($free_space / 1024 / 1024, 2) : __('Desconocido', 'dn325-backup');
+        $file_size_mb = round($file_size / 1024 / 1024, 2);
+        
+        $error = sprintf(
+            __('ERROR: No hay espacio suficiente en disco para guardar el archivo. Archivo: %s, Tamaño requerido: %s MB, Espacio disponible: %s MB', 'dn325-backup'),
+            $file_path,
+            $file_size_mb,
+            $free_space_mb
+        );
+        DN325_Backup_Logger::error($error);
     }
 
     /**
@@ -473,12 +649,22 @@ class DN325_Backup_Export {
         $filename = 'dn325-backup-' . date('Y-m-d-H-i-s') . '.zip';
         $this->zip_file = $this->backup_dir . '/' . $filename;
 
+        // Verificar espacio en disco antes de crear el ZIP
+        $temp_dir_size = $this->get_directory_size($this->temp_dir);
+        $this->check_disk_space($this->zip_file, $temp_dir_size);
+
         DN325_Backup_Logger::debug('Creando archivo ZIP: ' . $this->zip_file);
         $zip = new ZipArchive();
         $result = $zip->open($this->zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
         
         if ($result !== TRUE) {
             $error = __('No se pudo crear el archivo ZIP', 'dn325-backup') . ' (Código: ' . $result . ')';
+            
+            // Verificar si es error de espacio en disco
+            if ($result === ZipArchive::ER_NOZIP || $result === ZipArchive::ER_READ) {
+                $this->log_disk_space_error($this->zip_file, $temp_dir_size);
+            }
+            
             DN325_Backup_Logger::error($error);
             throw new Exception($error);
         }
@@ -486,7 +672,48 @@ class DN325_Backup_Export {
         // Agregar todos los archivos del directorio temporal
         $this->add_directory_to_zip($this->temp_dir, $zip, basename($this->temp_dir));
 
-        $zip->close();
+        $close_result = $zip->close();
+        if (!$close_result) {
+            $error = __('Error al cerrar el archivo ZIP', 'dn325-backup');
+            $last_error = error_get_last();
+            if ($last_error) {
+                $error .= ': ' . $last_error['message'];
+                // Verificar si es error de espacio en disco
+                if (strpos(strtolower($last_error['message']), 'no space') !== false || 
+                    strpos(strtolower($last_error['message']), 'disk full') !== false ||
+                    strpos(strtolower($last_error['message']), 'espacio') !== false) {
+                    $this->log_disk_space_error($this->zip_file, $temp_dir_size);
+                }
+            }
+            DN325_Backup_Logger::error($error);
+            throw new Exception($error);
+        }
+    }
+    
+    /**
+     * Obtiene el tamaño total de un directorio recursivamente
+     */
+    private function get_directory_size($dir) {
+        $size = 0;
+        if (!is_dir($dir)) {
+            return $size;
+        }
+        
+        $files = scandir($dir);
+        foreach ($files as $file) {
+            if ($file == '.' || $file == '..') {
+                continue;
+            }
+            
+            $file_path = $dir . '/' . $file;
+            if (is_dir($file_path)) {
+                $size += $this->get_directory_size($file_path);
+            } else {
+                $size += filesize($file_path);
+            }
+        }
+        
+        return $size;
     }
 
     /**

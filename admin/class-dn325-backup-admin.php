@@ -93,9 +93,13 @@ class DN325_Backup_Admin {
      */
     public static function enqueue_assets($hook) {
         // Verificar si estamos en la página del plugin
-        if (strpos($hook, 'dn325-backup') === false) {
+        // El hook puede ser 'toplevel_page_dn325-backup' o similar
+        if (strpos($hook, 'dn325-backup') === false && $hook !== 'toplevel_page_dn325-backup') {
+            error_log('DN325 Backup: enqueue_assets - Hook no coincide: ' . $hook);
             return;
         }
+        
+        error_log('DN325 Backup: Cargando assets para hook: ' . $hook);
 
         wp_enqueue_script(
             'dn325-backup-admin',
@@ -317,6 +321,92 @@ class DN325_Backup_Admin {
                             </div>
 
                             <div id="dn325-backup-import-result" class="dn325-backup-result"></div>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña Configuración -->
+                    <div id="settings-tab" class="tab-pane">
+                        <div class="dn325-backup-card">
+                            <h2><?php _e('Configuración de Backup', 'dn325-backup'); ?></h2>
+                            <p><?php _e('Selecciona qué elementos incluir en tus backups.', 'dn325-backup'); ?></p>
+                            
+                            <?php
+                            require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-settings.php';
+                            $settings = DN325_Backup_Settings::get_settings();
+                            ?>
+                            
+                            <form id="dn325-backup-settings-form">
+                                <table class="form-table">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row"><?php _e('Incluir en Backup', 'dn325-backup'); ?></th>
+                                            <td>
+                                                <fieldset>
+                                                    <label>
+                                                        <input type="checkbox" name="include_database" value="1" <?php checked($settings['include_database'], true); ?>>
+                                                        <?php _e('Base de datos', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_media" value="1" <?php checked($settings['include_media'], true); ?>>
+                                                        <?php _e('Archivos multimedia', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_uploads" value="1" <?php checked($settings['include_uploads'], true); ?>>
+                                                        <?php _e('Carpeta uploads', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_plugins" value="1" <?php checked($settings['include_plugins'], true); ?>>
+                                                        <?php _e('Plugins', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_themes" value="1" <?php checked($settings['include_themes'], true); ?>>
+                                                        <?php _e('Temas', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_posts" value="1" <?php checked($settings['include_posts'], true); ?>>
+                                                        <?php _e('Entradas', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_pages" value="1" <?php checked($settings['include_pages'], true); ?>>
+                                                        <?php _e('Páginas', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_comments" value="1" <?php checked($settings['include_comments'], true); ?>>
+                                                        <?php _e('Comentarios', 'dn325-backup'); ?>
+                                                    </label><br>
+                                                    <label>
+                                                        <input type="checkbox" name="include_users" value="1" <?php checked($settings['include_users'], true); ?>>
+                                                        <?php _e('Usuarios', 'dn325-backup'); ?>
+                                                    </label>
+                                                </fieldset>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <p class="submit">
+                                    <button type="submit" class="button button-primary">
+                                        <?php _e('Guardar Configuración', 'dn325-backup'); ?>
+                                    </button>
+                                </p>
+                                
+                                <div id="dn325-backup-settings-result" class="dn325-backup-result"></div>
+                            </form>
+                            
+                            <?php if ($is_connected): ?>
+                            <hr style="margin: 30px 0;">
+                            
+                            <h3><?php _e('Conexión OAuth', 'dn325-backup'); ?></h3>
+                            <p><?php _e('Prueba la conexión con el servidor OAuth para verificar que todo funciona correctamente.', 'dn325-backup'); ?></p>
+                            
+                            <p>
+                                <button type="button" id="dn325-backup-test-connection" class="button button-secondary">
+                                    <?php _e('Probar Conexión', 'dn325-backup'); ?>
+                                </button>
+                            </p>
+                            
+                            <div id="dn325-backup-test-result" class="dn325-backup-result" style="display: none;"></div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

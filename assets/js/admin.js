@@ -5,12 +5,31 @@
     let tempFileName = null;
 
     $(document).ready(function() {
-        initTabs();
-        initExport();
-        initImport();
-        initRestore();
-        initAccountManagement();
-        initSettings();
+        // Debug: Verificar que jQuery y las variables estén disponibles
+        if (typeof jQuery === 'undefined') {
+            console.error('DN325 Backup: jQuery no está disponible');
+            return;
+        }
+        
+        if (typeof dn325Backup === 'undefined') {
+            console.error('DN325 Backup: Variables de localización no están disponibles');
+            console.log('Verificar que wp_localize_script esté funcionando correctamente');
+            return;
+        }
+        
+        console.log('DN325 Backup: Inicializando...', dn325Backup);
+        
+        try {
+            initTabs();
+            initExport();
+            initImport();
+            initRestore();
+            initAccountManagement();
+            initSettings();
+            console.log('DN325 Backup: Inicialización completada');
+        } catch (error) {
+            console.error('DN325 Backup: Error en inicialización:', error);
+        }
     });
 
     /**
@@ -41,7 +60,10 @@
      * Inicializa la funcionalidad de restaurar
      */
     function initRestore() {
-        // La lista se carga cuando se hace clic en la pestaña
+        // Cargar la lista automáticamente si la pestaña de restaurar está activa
+        if ($('#restore-tab').hasClass('active')) {
+            loadBackupList();
+        }
     }
     
     /**
@@ -49,6 +71,9 @@
      */
     function loadBackupList() {
         const $container = $('#dn325-backup-list-container');
+        
+        // Mostrar indicador de carga
+        $container.html('<div class="dn325-backup-loading" style="text-align: center; padding: 20px;"><span class="spinner is-active" style="float: none; margin: 0 auto;"></span><p>Cargando backups...</p></div>');
         
         $.ajax({
             url: dn325Backup.ajax_url,
@@ -58,7 +83,9 @@
                 nonce: dn325Backup.nonce
             },
             success: function(response) {
-                if (response.success && response.data.backups.length > 0) {
+                console.log('DN325 Backup: Respuesta de lista de backups', response);
+                
+                if (response.success && response.data && response.data.backups && response.data.backups.length > 0) {
                     let html = '<div class="dn325-backup-list">';
                     
                     response.data.backups.forEach(function(backup) {
@@ -103,8 +130,29 @@
                     $container.html('<div class="dn325-backup-list-empty"><span class="dashicons dashicons-database"></span><p>No hay backups guardados en el servidor.</p></div>');
                 }
             },
-            error: function() {
-                $container.html('<div class="dn325-backup-list-empty"><p>Error al cargar la lista de backups.</p></div>');
+            error: function(xhr, status, error) {
+                console.error('DN325 Backup: Error al cargar lista de backups', {
+                    xhr: xhr,
+                    status: status,
+                    error: error,
+                    responseText: xhr.responseText
+                });
+                
+                let errorMessage = 'Error al cargar la lista de backups.';
+                try {
+                    if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                        errorMessage = xhr.responseJSON.data.message;
+                    } else if (xhr.responseText) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.data && response.data.message) {
+                            errorMessage = response.data.message;
+                        }
+                    }
+                } catch (e) {
+                    errorMessage = 'Error de conexión: ' + error;
+                }
+                
+                $container.html('<div class="dn325-backup-list-empty"><p>' + errorMessage + '</p></div>');
             }
         });
     }
@@ -222,7 +270,14 @@
                 }
             },
             error: function(xhr, status, error) {
-                clearInterval(progressInterval);
+                console.error('DN325 Backup: Error en petición AJAX de exportación', {
+                    xhr: xhr,
+                    status: status,
+                    error: error,
+                    responseText: xhr.responseText,
+                    statusCode: xhr.status
+                });
+                clearInterval(progressCheckInterval);
                 $progress.hide();
                 
                 var errorMessage = dn325Backup.strings.error;
@@ -237,6 +292,7 @@
                 }
                 
                 showResult($result, 'error', '<strong>Error:</strong> ' + errorMessage);
+                $btn.prop('disabled', false);
             }
         });
     }
@@ -245,7 +301,18 @@
      * Inicializa la funcionalidad de exportación
      */
     function initExport() {
-        $('#dn325-backup-export-btn').on('click', function() {
+        const $exportBtn = $('#dn325-backup-export-btn');
+        
+        if ($exportBtn.length === 0) {
+            console.warn('DN325 Backup: Botón de exportación no encontrado');
+            return;
+        }
+        
+        console.log('DN325 Backup: Registrando evento click en botón de exportación');
+        
+        $exportBtn.on('click', function(e) {
+            e.preventDefault();
+            console.log('DN325 Backup: Click en botón de exportación');
             if (!confirm(dn325Backup.strings.exporting + '\n\n' + '¿Estás seguro de continuar?')) {
                 return;
             }
@@ -274,31 +341,72 @@
                         nonce: dn325Backup.nonce
                     },
                     success: function(response) {
-                        if (response.success && response.data.progress.length > 0) {
+                        if (response.success) {
                             let detailsHtml = '';
-                            response.data.progress.forEach(function(line) {
-                                // Extraer solo el mensaje relevante
-                                const match = line.match(/\[INFO\](.*)/);
-                                if (match) {
-                                    const message = match[1].trim();
-                                    if (message) {
-                                        detailsHtml += '<div class="progress-item">' + message + '</div>';
+                            let currentPercentage = 0;
+                            let phaseText = '';
+                            
+                            // Mostrar detalles del progreso
+                            if (response.data.progress && response.data.progress.length > 0) {
+                                response.data.progress.forEach(function(line) {
+                                    // Extraer solo el mensaje relevante
+                                    const match = line.match(/\[INFO\](.*)/);
+                                    const errorMatch = line.match(/\[ERROR\](.*)/);
+                                    if (match) {
+                                        const message = match[1].trim();
+                                        if (message) {
+                                            detailsHtml += '<div class="progress-item">' + message + '</div>';
+                                        }
+                                    } else if (errorMatch) {
+                                        const message = errorMatch[1].trim();
+                                        if (message) {
+                                            detailsHtml += '<div class="progress-item" style="color: #d63638;">[ERROR] ' + message + '</div>';
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }
+                            
                             $progressDetails.html(detailsHtml);
                             // Scroll al final
                             $progressDetails.scrollTop($progressDetails[0].scrollHeight);
                             
-                            // Actualizar barra de progreso basado en el contenido
-                            const progressLines = response.data.progress.length;
-                            const estimatedProgress = Math.min(90, (progressLines / 200) * 100);
-                            $progressFill.css('width', estimatedProgress + '%');
+                            // Actualizar barra de progreso y porcentaje según la fase actual
+                            if (response.data.current_phase === 'database' && response.data.database_percentage !== null) {
+                                currentPercentage = response.data.database_percentage;
+                                phaseText = 'Base de datos: ' + currentPercentage + '%';
+                            } else if (response.data.current_phase === 'files' && response.data.files_percentage !== null) {
+                                currentPercentage = response.data.files_percentage;
+                                phaseText = 'Archivos: ' + currentPercentage + '%';
+                            } else if (response.data.database_percentage !== null && response.data.database_percentage === 100) {
+                                // Base de datos completada, esperando archivos
+                                if (response.data.files_percentage !== null) {
+                                    currentPercentage = response.data.files_percentage;
+                                    phaseText = 'Archivos: ' + currentPercentage + '%';
+                                } else {
+                                    phaseText = 'Base de datos completada. Iniciando copia de archivos...';
+                                }
+                            } else if (response.data.database_percentage !== null) {
+                                currentPercentage = response.data.database_percentage;
+                                phaseText = 'Base de datos: ' + currentPercentage + '%';
+                            } else {
+                                // Fallback: estimar basado en líneas de progreso
+                                const progressLines = response.data.progress ? response.data.progress.length : 0;
+                                currentPercentage = Math.min(90, (progressLines / 200) * 100);
+                                phaseText = 'Iniciando...';
+                            }
+                            
+                            $progressFill.css('width', currentPercentage + '%');
+                            $progressText.text(phaseText);
                         }
                     }
                 });
             }, 2000); // Verificar cada 2 segundos
 
+            console.log('DN325 Backup: Enviando petición AJAX de exportación', {
+                url: dn325Backup.ajax_url,
+                action: 'dn325_backup_export'
+            });
+            
             $.ajax({
                 url: dn325Backup.ajax_url,
                 type: 'POST',
@@ -306,7 +414,11 @@
                     action: 'dn325_backup_export',
                     nonce: dn325Backup.nonce
                 },
+                beforeSend: function() {
+                    console.log('DN325 Backup: Petición AJAX enviada');
+                },
                 success: function(response) {
+                    console.log('DN325 Backup: Respuesta AJAX recibida', response);
                     clearInterval(progressCheckInterval);
                     $progressFill.css('width', '100%');
 
@@ -723,8 +835,12 @@
      * Inicializa la configuración
      */
     function initSettings() {
+        console.log('DN325 Backup: Inicializando configuración');
+        
+        // Formulario de configuración
         $('#dn325-backup-settings-form').on('submit', function(e) {
             e.preventDefault();
+            console.log('DN325 Backup: Enviando formulario de configuración');
             
             const $form = $(this);
             const $result = $('#dn325-backup-settings-result');
@@ -743,17 +859,80 @@
                     ...formData
                 },
                 success: function(response) {
+                    console.log('DN325 Backup: Respuesta de guardar configuración', response);
                     if (response.success) {
                         showResult($result, 'success', response.data.message);
                     } else {
                         showResult($result, 'error', response.data.message || 'Error al guardar');
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.error('DN325 Backup: Error al guardar configuración', xhr, status, error);
                     showResult($result, 'error', 'Error de conexión');
                 }
             });
         });
+        
+        // Botón de prueba de conexión
+        const $testBtn = $('#dn325-backup-test-connection');
+        if ($testBtn.length > 0) {
+            console.log('DN325 Backup: Registrando evento click en botón de prueba de conexión');
+            
+            $testBtn.on('click', function(e) {
+                e.preventDefault();
+                console.log('DN325 Backup: Click en botón de prueba de conexión');
+                
+                const $btn = $(this);
+                const $result = $('#dn325-backup-test-result');
+                
+                $btn.prop('disabled', true).text('Probando...');
+                $result.hide().removeClass('success error');
+                
+                $.ajax({
+                    url: dn325Backup.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'dn325_backup_test_connection',
+                        nonce: dn325Backup.nonce
+                    },
+                    beforeSend: function() {
+                        console.log('DN325 Backup: Enviando petición AJAX para probar conexión');
+                    },
+                    success: function(response) {
+                        console.log('DN325 Backup: Respuesta de prueba de conexión', response);
+                        if (response.success) {
+                            let message = response.data.message || 'Conexión exitosa';
+                            if (response.data.account_info) {
+                                message += '<br><br><strong>Información de la cuenta:</strong><br>';
+                                message += 'Email: ' + (response.data.account_info.user_email || 'N/A') + '<br>';
+                                message += 'Versión: ' + (response.data.account_info.version || 'N/A');
+                            }
+                            showResult($result, 'success', message);
+                        } else {
+                            showResult($result, 'error', response.data.message || 'Error al probar la conexión');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('DN325 Backup: Error en petición AJAX de prueba de conexión', xhr, status, error);
+                        let errorMessage = 'Error de conexión';
+                        try {
+                            if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                                errorMessage = xhr.responseJSON.data.message;
+                            }
+                        } catch (e) {
+                            errorMessage = 'Error de conexión: ' + error;
+                        }
+                        showResult($result, 'error', errorMessage);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).text('Probar Conexión');
+                        $result.show();
+                    }
+                });
+            });
+        } else {
+            console.warn('DN325 Backup: Botón de prueba de conexión no encontrado');
+        }
     }
 
 })(jQuery);

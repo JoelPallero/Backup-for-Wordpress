@@ -15,9 +15,27 @@ if (!current_user_can('activate_plugins')) {
     return;
 }
 
-// Verificar que el usuario realmente quiere desinstalar
-check_admin_referer('bulk-plugins');
+<<<<<<< Current (Your changes)
+// Verificar que el usuario realmente quiere desinstalar (nonce opcional)
+// El nonce puede variar según cómo se desinstale (individual o bulk)
+if (isset($_REQUEST['_wpnonce'])) {
+    $nonce_actions = ['bulk-plugins', 'delete-plugin_' . plugin_basename(__FILE__)];
+    $nonce_valid = false;
+    
+    foreach ($nonce_actions as $action) {
+        if (wp_verify_nonce($_REQUEST['_wpnonce'], $action)) {
+            $nonce_valid = true;
+            break;
+        }
+    }
+    
+    if (!$nonce_valid) {
+        return;
+    }
+}
 
+=======
+>>>>>>> Incoming (Background Agent changes)
 /**
  * Elimina todas las copias de seguridad y archivos relacionados
  */
