@@ -1,30 +1,30 @@
 /* Asegurar que el contenedor use todo el ancho disponible */
-body.toplevel_page_dn325-plugins .dn325-backup-wrap,
-body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
+body.toplevel_page_Nabi-plugins .Nabi-backup-wrap,
+body.Nabi-plugins_page_Nabi-backup .Nabi-backup-wrap {
     max-width: 100% !important;
     margin: 20px 0 !important;
     padding: 0 !important;
 }
 
-.dn325-backup-wrap {
+.Nabi-backup-wrap {
     max-width: 100%;
     margin: 20px 0;
     padding: 0;
 }
 
-.dn325-backup-tabs {
+.Nabi-backup-tabs {
     background: #fff;
     border: 1px solid #ccd0d4;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
     margin-top: 20px;
 }
 
-.dn325-backup-tabs .nav-tab-wrapper {
+.Nabi-backup-tabs .nav-tab-wrapper {
     margin: 0;
     border-bottom: 1px solid #ccd0d4;
 }
 
-.dn325-backup-tab-content {
+.Nabi-backup-tab-content {
     padding: 20px;
 }
 
@@ -36,38 +36,38 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     display: block;
 }
 
-.dn325-backup-card {
+.Nabi-backup-card {
     background: #fff;
 }
 
-.dn325-backup-card h2 {
+.Nabi-backup-card h2 {
     margin-top: 0;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
 }
 
-.dn325-backup-card p {
+.Nabi-backup-card p {
     color: #646970;
     margin-bottom: 20px;
 }
 
 /* Export Section */
-.dn325-backup-export-actions {
+.Nabi-backup-export-actions {
     margin: 30px 0;
 }
 
-#dn325-backup-export-btn {
+#Nabi-backup-export-btn {
     font-size: 16px;
     height: auto;
     padding: 12px 24px;
 }
 
 /* Import Section */
-.dn325-backup-import-area {
+.Nabi-backup-import-area {
     margin: 30px 0;
 }
 
-.dn325-backup-dropzone {
+.Nabi-backup-dropzone {
     border: 2px dashed #c3c4c7;
     border-radius: 4px;
     padding: 60px 20px;
@@ -77,22 +77,22 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     cursor: pointer;
 }
 
-.dn325-backup-dropzone:hover {
+.Nabi-backup-dropzone:hover {
     border-color: #2271b1;
     background: #f0f6fc;
 }
 
-.dn325-backup-dropzone.dragover {
+.Nabi-backup-dropzone.dragover {
     border-color: #2271b1;
     background: #e7f3ff;
     border-style: solid;
 }
 
-.dn325-backup-dropzone-content {
+.Nabi-backup-dropzone-content {
     pointer-events: none;
 }
 
-.dn325-backup-dropzone .dashicons {
+.Nabi-backup-dropzone .dashicons {
     font-size: 48px;
     width: 48px;
     height: 48px;
@@ -100,19 +100,19 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     margin-bottom: 15px;
 }
 
-.dn325-backup-dropzone-text {
+.Nabi-backup-dropzone-text {
     font-size: 16px;
     font-weight: 600;
     color: #1d2327;
     margin: 10px 0;
 }
 
-.dn325-backup-dropzone-or {
+.Nabi-backup-dropzone-or {
     color: #646970;
     margin: 15px 0;
 }
 
-.dn325-backup-file-info {
+.Nabi-backup-file-info {
     margin-top: 20px;
     padding: 20px;
     background: #f6f7f7;
@@ -120,53 +120,53 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     border-radius: 4px;
 }
 
-.dn325-backup-file-details {
+.Nabi-backup-file-details {
     display: flex;
     align-items: center;
     gap: 15px;
     margin-bottom: 15px;
 }
 
-.dn325-backup-file-details .dashicons {
+.Nabi-backup-file-details .dashicons {
     font-size: 32px;
     width: 32px;
     height: 32px;
     color: #2271b1;
 }
 
-.dn325-backup-file-name {
+.Nabi-backup-file-name {
     flex: 1;
     font-weight: 600;
     color: #1d2327;
 }
 
-.dn325-backup-file-meta {
+.Nabi-backup-file-meta {
     padding-top: 15px;
     border-top: 1px solid #c3c4c7;
     color: #646970;
     font-size: 14px;
 }
 
-.dn325-backup-file-meta strong {
+.Nabi-backup-file-meta strong {
     color: #1d2327;
 }
 
-.dn325-backup-import-actions {
+.Nabi-backup-import-actions {
     margin-top: 20px;
 }
 
-#dn325-backup-import-btn {
+#Nabi-backup-import-btn {
     font-size: 16px;
     height: auto;
     padding: 12px 24px;
 }
 
 /* Progress Bar */
-.dn325-backup-progress {
+.Nabi-backup-progress {
     margin: 30px 0;
 }
 
-.dn325-backup-progress-bar {
+.Nabi-backup-progress-bar {
     width: 100%;
     height: 30px;
     background: #f0f0f1;
@@ -175,7 +175,7 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     margin-bottom: 10px;
 }
 
-.dn325-backup-progress-fill {
+.Nabi-backup-progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #2271b1, #135e96);
     width: 0%;
@@ -192,14 +192,14 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     }
 }
 
-.dn325-backup-progress-text {
+.Nabi-backup-progress-text {
     text-align: center;
     color: #646970;
     font-weight: 500;
     margin: 0;
 }
 
-.dn325-backup-progress-details {
+.Nabi-backup-progress-details {
     margin-top: 15px;
     padding: 10px;
     background: #f6f7f7;
@@ -211,21 +211,21 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     line-height: 1.6;
 }
 
-.dn325-backup-progress-details .progress-item {
+.Nabi-backup-progress-details .progress-item {
     padding: 5px 0;
     border-bottom: 1px solid #e0e0e0;
 }
 
-.dn325-backup-progress-details .progress-item:last-child {
+.Nabi-backup-progress-details .progress-item:last-child {
     border-bottom: none;
 }
 
 /* Lista de Backups */
-.dn325-backup-list {
+.Nabi-backup-list {
     margin-top: 20px;
 }
 
-.dn325-backup-list-item {
+.Nabi-backup-list-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -236,28 +236,28 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     margin-bottom: 10px;
 }
 
-.dn325-backup-list-item-info {
+.Nabi-backup-list-item-info {
     flex: 1;
 }
 
-.dn325-backup-list-item-name {
+.Nabi-backup-list-item-name {
     font-weight: 600;
     color: #1d2327;
     margin-bottom: 5px;
 }
 
-.dn325-backup-list-item-meta {
+.Nabi-backup-list-item-meta {
     font-size: 13px;
     color: #646970;
 }
 
-.dn325-backup-list-item-actions {
+.Nabi-backup-list-item-actions {
     display: flex;
     gap: 10px;
     align-items: center;
 }
 
-.dn325-backup-list-item-actions .delete-backup-btn {
+.Nabi-backup-list-item-actions .delete-backup-btn {
     color: #b32d2e !important;
     text-decoration: none;
     cursor: pointer;
@@ -267,23 +267,23 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     font-size: 13px;
 }
 
-.dn325-backup-list-item-actions .delete-backup-btn:hover {
+.Nabi-backup-list-item-actions .delete-backup-btn:hover {
     color: #d63638 !important;
     text-decoration: underline;
 }
 
-.dn325-backup-list-item-actions .delete-backup-btn:disabled {
+.Nabi-backup-list-item-actions .delete-backup-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.dn325-backup-list-empty {
+.Nabi-backup-list-empty {
     text-align: center;
     padding: 40px;
     color: #646970;
 }
 
-.dn325-backup-list-empty .dashicons {
+.Nabi-backup-list-empty .dashicons {
     font-size: 48px;
     width: 48px;
     height: 48px;
@@ -292,7 +292,7 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
 }
 
 /* Result Messages */
-.dn325-backup-result {
+.Nabi-backup-result {
     margin-top: 20px;
     padding: 15px;
     border-radius: 4px;
@@ -300,76 +300,78 @@ body.dn325-plugins_page_dn325-backup .dn325-backup-wrap {
     line-height: 1.6;
 }
 
-.dn325-backup-result.success {
+.Nabi-backup-result.success {
     display: block;
     background: #d1e7dd;
     border: 1px solid #badbcc;
     color: #0f5132;
 }
 
-.dn325-backup-result.error {
+.Nabi-backup-result.error {
     display: block;
     background: #f8d7da;
     border: 1px solid #f5c2c7;
     color: #842029;
 }
 
-.dn325-backup-result.error strong {
+.Nabi-backup-result.error strong {
     font-weight: 600;
     display: block;
     margin-bottom: 5px;
 }
 
-.dn325-backup-result .dashicons {
+.Nabi-backup-result .dashicons {
     vertical-align: middle;
     margin-right: 8px;
 }
 
 /* Responsive */
 @media (max-width: 782px) {
-    .dn325-backup-wrap {
+    .Nabi-backup-wrap {
         margin: 10px;
     }
 
-    .dn325-backup-tab-content {
+    .Nabi-backup-tab-content {
         padding: 15px;
     }
 
-    .dn325-backup-dropzone {
+    .Nabi-backup-dropzone {
         padding: 40px 15px;
     }
 }
 
 /* Estilos para la sección de cuenta/versión */
-.dn325-backup-account-section {
+.Nabi-backup-account-section {
     border-radius: 4px;
 }
 
-.dn325-backup-account-section h2 {
+.Nabi-backup-account-section h2 {
     display: inline-flex;
     align-items: center;
     gap: 8px;
 }
 
-.dn325-backup-account-section h2::before {
+.Nabi-backup-account-section h2::before {
     content: "⭐";
     font-size: 20px;
 }
 
 @media (max-width: 782px) {
-    .dn325-backup-account-section > div {
+    .Nabi-backup-account-section > div {
         flex-direction: column;
         align-items: flex-start !important;
     }
     
-    .dn325-backup-account-section > div > div:last-child {
+    .Nabi-backup-account-section > div > div:last-child {
         width: 100%;
         margin-top: 15px;
     }
     
-    .dn325-backup-account-section > div > div:last-child a,
-    .dn325-backup-account-section > div > div:last-child button {
+    .Nabi-backup-account-section > div > div:last-child a,
+    .Nabi-backup-account-section > div > div:last-child button {
         width: 100%;
         margin-bottom: 5px;
     }
 }
+
+

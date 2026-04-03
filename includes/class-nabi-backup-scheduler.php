@@ -4,9 +4,9 @@ defined('ABSPATH') || exit;
 /**
  * Clase para gestionar copias automáticas programadas (solo Ultra)
  */
-class DN325_Backup_Scheduler {
+class NABI_BACKUP_Scheduler {
 
-    const CRON_HOOK = 'dn325_backup_auto_backup';
+    const CRON_HOOK = 'NABI_BACKUP_auto_backup';
     
     /**
      * Inicializa el sistema de copias automáticas
@@ -23,15 +23,15 @@ class DN325_Backup_Scheduler {
      * Programa el próximo backup automático
      */
     public static function schedule_backup() {
-        require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-license.php';
+        require_once NABI_BACKUP_PATH . 'includes/class-Nabi-backup-license.php';
         
         // Solo para versión Ultra
-        if (!DN325_Backup_License::has_auto_backups()) {
+        if (!NABI_BACKUP_License::has_auto_backups()) {
             self::unschedule_backup();
             return;
         }
         
-        $config = DN325_Backup_License::get_auto_backup_config();
+        $config = NABI_BACKUP_License::get_auto_backup_config();
         
         if (!$config || !$config['enabled']) {
             self::unschedule_backup();
@@ -47,7 +47,7 @@ class DN325_Backup_Scheduler {
         // Programar evento
         wp_schedule_event($next_run, self::get_cron_schedule($config['frequency']), self::CRON_HOOK);
         
-        DN325_Backup_Logger::info('Backup automático programado para: ' . date('Y-m-d H:i:s', $next_run));
+        NABI_BACKUP_Logger::info('Backup automático programado para: ' . date('Y-m-d H:i:s', $next_run));
     }
     
     /**
@@ -64,34 +64,34 @@ class DN325_Backup_Scheduler {
      * Ejecuta el backup automático
      */
     public static function execute_auto_backup() {
-        require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-license.php';
+        require_once NABI_BACKUP_PATH . 'includes/class-Nabi-backup-license.php';
         
         // Verificar que sigue siendo Ultra
-        if (!DN325_Backup_License::has_auto_backups()) {
+        if (!NABI_BACKUP_License::has_auto_backups()) {
             self::unschedule_backup();
             return;
         }
         
-        DN325_Backup_Logger::info('Iniciando backup automático programado');
+        NABI_BACKUP_Logger::info('Iniciando backup automático programado');
         
         try {
-            require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-export.php';
+            require_once NABI_BACKUP_PATH . 'includes/class-Nabi-backup-export.php';
             
-            $export = new DN325_Backup_Export();
+            $export = new NABI_BACKUP_Export();
             $result = $export->create_backup();
             
             if ($result['success']) {
-                DN325_Backup_Logger::info('Backup automático completado exitosamente: ' . $result['filename']);
+                NABI_BACKUP_Logger::info('Backup automático completado exitosamente: ' . $result['filename']);
                 
                 // Enviar email de notificación
                 self::send_backup_notification_email($result);
             } else {
-                DN325_Backup_Logger::error('Error en backup automático: ' . ($result['error'] ?? 'Error desconocido'));
+                NABI_BACKUP_Logger::error('Error en backup automático: ' . ($result['error'] ?? 'Error desconocido'));
             }
         } catch (Exception $e) {
-            DN325_Backup_Logger::error('Excepción en backup automático: ' . $e->getMessage());
+            NABI_BACKUP_Logger::error('Excepción en backup automático: ' . $e->getMessage());
         } catch (Error $e) {
-            DN325_Backup_Logger::error('Error fatal en backup automático: ' . $e->getMessage());
+            NABI_BACKUP_Logger::error('Error fatal en backup automático: ' . $e->getMessage());
         }
     }
     
@@ -104,12 +104,12 @@ class DN325_Backup_Scheduler {
         $site_url = get_site_url();
         
         $subject = sprintf(
-            __('[%s] Backup automático completado', 'dn325-backup'),
+            __('[%s] Backup automático completado', 'Nabi-backup'),
             $site_name
         );
         
         $message = sprintf(
-            __("Hola,\n\nSe ha completado exitosamente el backup automático de tu sitio WordPress.\n\nDetalles del backup:\n- Archivo: %s\n- Fecha: %s\n- Tamaño: %s\n\nPuedes descargar el backup desde el panel de administración de WordPress.\n\nSaludos,\nSistema de Backups DN325", 'dn325-backup'),
+            __("Hola,\n\nSe ha completado exitosamente el backup automático de tu sitio WordPress.\n\nDetalles del backup:\n- Archivo: %s\n- Fecha: %s\n- Tamaño: %s\n\nPuedes descargar el backup desde el panel de administración de WordPress.\n\nSaludos,\nSistema de Backups Nabi", 'Nabi-backup'),
             $backup_result['filename'],
             date('Y-m-d H:i:s'),
             size_format(filesize($backup_result['file']))
@@ -123,9 +123,9 @@ class DN325_Backup_Scheduler {
         $sent = wp_mail($admin_email, $subject, $message, $headers);
         
         if ($sent) {
-            DN325_Backup_Logger::info('Email de notificación de backup enviado a: ' . $admin_email);
+            NABI_BACKUP_Logger::info('Email de notificación de backup enviado a: ' . $admin_email);
         } else {
-            DN325_Backup_Logger::warning('No se pudo enviar el email de notificación de backup');
+            NABI_BACKUP_Logger::warning('No se pudo enviar el email de notificación de backup');
         }
     }
     
@@ -186,16 +186,16 @@ class DN325_Backup_Scheduler {
      * Obtiene el estado del backup automático
      */
     public static function get_status() {
-        require_once DN325_BACKUP_PATH . 'includes/class-dn325-backup-license.php';
+        require_once NABI_BACKUP_PATH . 'includes/class-Nabi-backup-license.php';
         
-        if (!DN325_Backup_License::has_auto_backups()) {
+        if (!NABI_BACKUP_License::has_auto_backups()) {
             return [
                 'enabled' => false,
-                'message' => __('Copias automáticas solo disponibles en versión Ultra', 'dn325-backup')
+                'message' => __('Copias automáticas solo disponibles en versión Ultra', 'Nabi-backup')
             ];
         }
         
-        $config = DN325_Backup_License::get_auto_backup_config();
+        $config = NABI_BACKUP_License::get_auto_backup_config();
         $next_run = wp_next_scheduled(self::CRON_HOOK);
         
         return [
@@ -207,3 +207,5 @@ class DN325_Backup_Scheduler {
         ];
     }
 }
+
+

@@ -2,7 +2,7 @@
 /**
  * Fired when the plugin is uninstalled.
  *
- * @package DN325_Backup
+ * @package NABI_BACKUP
  */
 
 // Si no se llama desde WordPress, salir
@@ -15,43 +15,22 @@ if (!current_user_can('activate_plugins')) {
     return;
 }
 
-<<<<<<< Current (Your changes)
-// Verificar que el usuario realmente quiere desinstalar (nonce opcional)
-// El nonce puede variar según cómo se desinstale (individual o bulk)
-if (isset($_REQUEST['_wpnonce'])) {
-    $nonce_actions = ['bulk-plugins', 'delete-plugin_' . plugin_basename(__FILE__)];
-    $nonce_valid = false;
-    
-    foreach ($nonce_actions as $action) {
-        if (wp_verify_nonce($_REQUEST['_wpnonce'], $action)) {
-            $nonce_valid = true;
-            break;
-        }
-    }
-    
-    if (!$nonce_valid) {
-        return;
-    }
-}
-
-=======
->>>>>>> Incoming (Background Agent changes)
 /**
  * Elimina todas las copias de seguridad y archivos relacionados
  */
-function dn325_backup_delete_backup_files() {
-    $backup_dir = ABSPATH . 'wp-content/dn325bck';
+function NABI_BACKUP_delete_backup_files() {
+    $backup_dir = ABSPATH . 'wp-content/Nabibck';
     
     if (is_dir($backup_dir)) {
         // Eliminar todo el contenido del directorio
-        dn325_backup_delete_directory($backup_dir);
+        NABI_BACKUP_delete_directory($backup_dir);
     }
 }
 
 /**
  * Elimina un directorio y todo su contenido recursivamente
  */
-function dn325_backup_delete_directory($dir) {
+function NABI_BACKUP_delete_directory($dir) {
     if (!is_dir($dir)) {
         return;
     }
@@ -62,7 +41,7 @@ function dn325_backup_delete_directory($dir) {
         $path = $dir . '/' . $file;
         
         if (is_dir($path)) {
-            dn325_backup_delete_directory($path);
+            NABI_BACKUP_delete_directory($path);
         } else {
             @unlink($path);
         }
@@ -74,26 +53,28 @@ function dn325_backup_delete_directory($dir) {
 /**
  * Elimina todas las opciones/configuraciones de la base de datos
  */
-function dn325_backup_delete_database_options() {
+function NABI_BACKUP_delete_database_options() {
     global $wpdb;
     
     // Eliminar opciones que puedan estar relacionadas con el plugin
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'dn325_backup_%'");
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_dn325_backup_%'");
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_dn325_backup_%'");
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_dn325_backup_%'");
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_timeout_dn325_backup_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'NABI_BACKUP_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_NABI_BACKUP_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_NABI_BACKUP_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_NABI_BACKUP_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_timeout_NABI_BACKUP_%'");
     
     // Limpiar meta de usuarios si hay alguna
-    $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE 'dn325_backup_%'");
+    $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE 'NABI_BACKUP_%'");
     
     // Limpiar meta de posts si hay alguna
-    $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE 'dn325_backup_%'");
+    $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE 'NABI_BACKUP_%'");
     
     // Limpiar comentarios meta si hay alguna
-    $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key LIKE 'dn325_backup_%'");
+    $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key LIKE 'NABI_BACKUP_%'");
 }
 
 // Ejecutar limpieza
-dn325_backup_delete_backup_files();
-dn325_backup_delete_database_options();
+NABI_BACKUP_delete_backup_files();
+NABI_BACKUP_delete_database_options();
+
+

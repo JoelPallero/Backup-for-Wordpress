@@ -1,7 +1,7 @@
 <?php
 defined('ABSPATH') || exit;
 
-class DN325_Backup_Logger {
+class NABI_BACKUP_Logger {
 
     private static $log_file = null;
     private static $log_dir = null;
@@ -10,7 +10,7 @@ class DN325_Backup_Logger {
      * Inicializa el sistema de logging
      */
     public static function init() {
-        self::$log_dir = ABSPATH . 'wp-content/dn325bck/logs';
+        self::$log_dir = ABSPATH . 'wp-content/Nabibck/logs';
         
         // Crear directorio si no existe
         if (!file_exists(self::$log_dir)) {
@@ -18,7 +18,7 @@ class DN325_Backup_Logger {
             if (!$created) {
                 // Si no se puede crear, intentar usar el directorio de uploads como fallback
                 $upload_dir = wp_upload_dir();
-                self::$log_dir = $upload_dir['basedir'] . '/dn325-backup-logs';
+                self::$log_dir = $upload_dir['basedir'] . '/Nabi-backup-logs';
                 @wp_mkdir_p(self::$log_dir);
             }
         }
@@ -31,7 +31,7 @@ class DN325_Backup_Logger {
 
         // Crear archivo de log con fecha
         $date = date('Y-m-d');
-        self::$log_file = self::$log_dir . '/dn325-backup-' . $date . '.log';
+        self::$log_file = self::$log_dir . '/Nabi-backup-' . $date . '.log';
         
         // Crear archivo si no existe y verificar que sea escribible
         if (!file_exists(self::$log_file)) {
@@ -57,7 +57,7 @@ class DN325_Backup_Logger {
             
             // Si aún no se puede escribir, usar el log de WordPress como fallback
             if (!is_writable(self::$log_dir)) {
-                error_log('DN325 Backup [' . strtoupper($type) . ']: ' . $message);
+                error_log('Nabi Backup [' . strtoupper($type) . ']: ' . $message);
                 return;
             }
         }
@@ -76,13 +76,13 @@ class DN325_Backup_Logger {
         // Si falla la escritura, intentar escribir en el log de WordPress
         if ($result === false) {
             $error = error_get_last();
-            error_log('DN325 Backup: Error al escribir en log - ' . ($error ? $error['message'] : 'Error desconocido'));
-            error_log('DN325 Backup [' . strtoupper($type) . ']: ' . $message);
+            error_log('Nabi Backup: Error al escribir en log - ' . ($error ? $error['message'] : 'Error desconocido'));
+            error_log('Nabi Backup [' . strtoupper($type) . ']: ' . $message);
         }
 
         // También escribir en el log de WordPress si WP_DEBUG está activo
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('DN325 Backup [' . strtoupper($type) . ']: ' . $message);
+            error_log('Nabi Backup [' . strtoupper($type) . ']: ' . $message);
         }
     }
 
@@ -136,7 +136,7 @@ class DN325_Backup_Logger {
             return;
         }
 
-        $files = glob(self::$log_dir . '/dn325-backup-*.log');
+        $files = glob(self::$log_dir . '/Nabi-backup-*.log');
         $cutoff_time = time() - ($days * DAY_IN_SECONDS);
 
         foreach ($files as $file) {
@@ -156,3 +156,5 @@ class DN325_Backup_Logger {
         return self::$log_file;
     }
 }
+
+
