@@ -26,9 +26,15 @@ class NABI_BACKUP_License
     const MAX_BACKUPS_PRO = -1;  // Sin límite
     const MAX_BACKUPS_ULTRA = -1; // Ilimitado
 
+<<<<<<< HEAD
     const API_BASE_URL = 'https://joelpallero.com.ar/productos/api';
     const OAUTH_AUTHORIZE_URL = 'https://joelpallero.com.ar/productos/oauth/authorize';
     const OAUTH_TOKEN_URL = 'https://joelpallero.com.ar/productos/api/oauth/token';
+=======
+    const API_BASE_URL = 'https://joelpallero.com.ar/store/api';
+    const OAUTH_AUTHORIZE_URL = 'https://joelpallero.com.ar/store/oauth/authorize';
+    const OAUTH_TOKEN_URL = 'https://joelpallero.com.ar/store/api/oauth/token';
+>>>>>>> 642dd96 (Standardization of Nabi ecosystem and slug refactoring v1.0.1)
 
     /**
      * Obtiene la versión actual del plugin basada en la cuenta conectada

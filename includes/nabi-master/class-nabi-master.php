@@ -29,7 +29,11 @@ if (!class_exists('NABI_Master')) {
             }
 
             global $menu;
+<<<<<<< HEAD
             if (isset($menu)) {
+=======
+            if (isset($menu) && is_array($menu)) {
+>>>>>>> 642dd96 (Standardization of Nabi ecosystem and slug refactoring v1.0.1)
                 foreach ($menu as $key => $item) {
                     if (isset($item[2]) && $item[2] === self::$menu_slug) {
                         unset($menu[$key]);
@@ -181,9 +185,12 @@ if (!class_exists('NABI_Master')) {
             <?php
         }
 
+<<<<<<< HEAD
         /**
          * Obtiene el estado del ecosistema Nabi completo
          */
+=======
+>>>>>>> 642dd96 (Standardization of Nabi ecosystem and slug refactoring v1.0.1)
         private static function get_nabi_ecosystem() {
             if (!function_exists('is_plugin_active')) {
                 require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -191,6 +198,7 @@ if (!class_exists('NABI_Master')) {
 
             // Datos base del ecosistema
             $ecosystem = [
+<<<<<<< HEAD
                 'Nabi-backup' => [
                     'name' => __('Nabi Backup', 'nabi-master'),
                     'description' => __('Sistema completo de backup e importación para WordPress con compresión inteligente.', 'nabi-master'),
@@ -217,6 +225,34 @@ if (!class_exists('NABI_Master')) {
                     'description' => __('Convierte y optimiza automáticamente las imágenes de tu biblioteca a formato WebP.', 'nabi-master'),
                     'store_url' => 'https://joelpallero.com.ar/store/nabi-webp',
                     'admin_url' => admin_url('admin.php?page=Nabi-webp'),
+=======
+                'nabi-backup' => [
+                    'name' => __('Nabi Backup', 'nabi-master'),
+                    'description' => __('Sistema completo de backup e importación para WordPress con compresión inteligente.', 'nabi-master'),
+                    'store_url' => 'https://joelpallero.com.ar/store/nabi-backup',
+                    'admin_url' => admin_url('admin.php?page=nabi-backup'),
+                    'check_class' => 'NABI_BACKUP_Loader'
+                ],
+                'nabi-duplicator' => [
+                    'name' => __('Nabi Duplicator', 'nabi-master'),
+                    'description' => __('Duplica y clona instantáneamente posts, páginas, productos y menús con un solo clic.', 'nabi-master'),
+                    'store_url' => 'https://joelpallero.com.ar/store/nabi-duplicator',
+                    'admin_url' => admin_url('admin.php?page=nabi-duplicator'),
+                    'check_class' => 'NABI_Duplicator_Loader'
+                ],
+                'nabi-filter' => [
+                    'name' => __('Nabi Filter for WooCommerce', 'nabi-master'),
+                    'description' => __('Sistema avanzado de filtros AJAX ultra rápidos para catálogos y productos de WooCommerce.', 'nabi-master'),
+                    'store_url' => 'https://joelpallero.com.ar/store/nabi-filter',
+                    'admin_url' => admin_url('admin.php?page=nabi-filter'),
+                    'check_class' => 'NABI_Filter_Loader'
+                ],
+                'nabi-webp' => [
+                    'name' => __('Nabi WebP Converter', 'nabi-master'),
+                    'description' => __('Convierte y optimiza automáticamente las imágenes de tu biblioteca a formato WebP.', 'nabi-master'),
+                    'store_url' => 'https://joelpallero.com.ar/store/nabi-webp',
+                    'admin_url' => admin_url('admin.php?page=nabi-webp'),
+>>>>>>> 642dd96 (Standardization of Nabi ecosystem and slug refactoring v1.0.1)
                     'check_class' => 'NABI_WebP_Loader'
                 ]
             ];

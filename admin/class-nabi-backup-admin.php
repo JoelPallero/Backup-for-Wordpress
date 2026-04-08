@@ -18,7 +18,11 @@ class NABI_BACKUP_Admin
     public static function handle_oauth_callback()
     {
         // Verificar que estamos en la página correcta
+<<<<<<< HEAD
         if (!isset($_GET['page']) || $_GET['page'] !== 'Nabi-backup') {
+=======
+        if (!isset($_GET['page']) || $_GET['page'] !== 'nabi-backup') {
+>>>>>>> 642dd96 (Standardization of Nabi ecosystem and slug refactoring v1.0.1)
             return;
         }
 
@@ -87,9 +91,15 @@ class NABI_BACKUP_Admin
         }
 
         NABI_Master::add_submenu(
+<<<<<<< HEAD
             __('Nabi Backup', 'Nabi-backup'),
             __('Backup', 'Nabi-backup'),
             'Nabi-backup',
+=======
+            __('Nabi Backup', 'nabi-backup'),
+            __('Backup', 'nabi-backup'),
+            'nabi-backup',
+>>>>>>> 642dd96 (Standardization of Nabi ecosystem and slug refactoring v1.0.1)
             [__CLASS__, 'render_admin_page']
         );
     }
@@ -101,8 +111,12 @@ class NABI_BACKUP_Admin
     {
         // Verificar si estamos en la página del plugin
         // El hook puede ser 'toplevel_page_Nabi-backup' o similar
+<<<<<<< HEAD
         if (strpos($hook, 'Nabi-backup') === false && $hook !== 'toplevel_page_Nabi-backup') {
             error_log('Nabi Backup: enqueue_assets - Hook no coincide: ' . $hook);
+=======
+        if (strpos($hook, 'nabi-backup') === false) {
+>>>>>>> 642dd96 (Standardization of Nabi ecosystem and slug refactoring v1.0.1)
             return;
         }
 
